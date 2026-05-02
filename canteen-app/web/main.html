@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CanteenOS — Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1e3a8a',
+            secondary: '#10b981',
+            accent: '#f97316',
+            success: '#22c55e',
+            warning: '#f59e0b',
+            error: '#ef4444',
+            surface: '#ffffff',
+            bg: '#F8FAFC',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Smooth scroll & custom scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 20px;
+    }
+
+    /* Pulse for live indicators */
+    .pulse-dot {
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      animation: pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse-green {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      }
+
+      50% {
+        opacity: 0.8;
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+      }
+    }
+
+    /* Sidebar states */
+    .sidebar-link {
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .sidebar-link:hover {
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+
+    .sidebar-link.active {
+      background-color: #eff6ff;
+      color: #1e3a8a;
+      font-weight: 600;
+    }
+
+    .sidebar-link.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      background: #1e3a8a;
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* Card micro-interactions */
+    .kpi-card,
+    .meal-card,
+    .panel {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .kpi-card:hover,
+    .meal-card:hover,
+    .panel:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Activity row hover */
+    .activity-row {
+      transition: background-color 0.15s ease;
+    }
+
+    .activity-row:hover {
+      background-color: #f8fafc;
+    }
+
+    /* Staggered entrance */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-in {
+      animation: fadeUp 0.5s ease forwards;
+      opacity: 0;
+    }
+
+    .delay-1 {
+      animation-delay: 0.05s;
+    }
+
+    .delay-2 {
+      animation-delay: 0.10s;
+    }
+
+    .delay-3 {
+      animation-delay: 0.15s;
+    }
+
+    .delay-4 {
+      animation-delay: 0.20s;
+    }
+
+    .delay-5 {
+      animation-delay: 0.25s;
+    }
+
+    .delay-6 {
+      animation-delay: 0.30s;
+    }
+  </style>
+</head>
+
+<body class="bg-bg text-slate-800 h-screen overflow-hidden flex antialiased">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-full shrink-0 z-20">
+    <!-- Brand -->
+    <div class="h-[72px] flex items-center px-6 border-b border-slate-100 shrink-0">
+      <div class="w-9 h-9 bg-primary rounded-lg flex items-center justify-center mr-3 shadow-sm shadow-blue-900/20">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="font-bold text-[15px] text-slate-900 leading-tight tracking-tight">CanteenOS</h1>
+        <p class="text-[11px] text-slate-400 font-medium tracking-wide uppercase">Admin Portal</p>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 py-6 px-3 space-y-0.5 overflow-y-auto custom-scrollbar">
+      <div class="px-3 mb-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Main Menu</div>
+
+      <a href="#" class="sidebar-link active flex items-center px-3 py-2.5 rounded-lg text-sm mb-0.5">
+        <svg class="w-[18px] h-[18px] mr-3 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+        </svg>
+        Status Overview
+      </a>
+
+      <a href="#" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm text-slate-600 mb-0.5">
+        <svg class="w-[18px] h-[18px] mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+        Meal Management
+      </a>
+
+      <a href="#" class="sidebar-link flex items-center px-3 py-2.5 rounded-lg text-sm text-slate-600 mb-0.5">
+        <svg class="w-[18px] h-[18px] mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        Operations
+      </a>
+    </nav>
+
+    <!-- User Mini-Profile -->
+    <div class="p-4 border-t border-slate-100 shrink-0">
+      <div class="flex items-center p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+        <img src="https://ui-avatars.com/api/?name=Admin+User&background=1e3a8a&color=fff&size=64" alt="Admin"
+          class="w-9 h-9 rounded-full mr-3 border-2 border-white shadow-sm">
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-slate-900 truncate">Alex Morgan</p>
+          <p class="text-[11px] text-slate-500 truncate">Canteen Warden</p>
+        </div>
+        <button class="text-slate-400 hover:text-slate-600 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+
+    <!-- TOP HEADER -->
+    <header
+      class="h-[72px] bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 shrink-0 z-10 sticky top-0">
+      <div class="flex items-center gap-3">
+        <h2 class="text-lg font-bold text-slate-900 tracking-tight">Admin Dashboard</h2>
+        <span class="text-slate-300">|</span>
+        <span id="current-date" class="text-sm text-slate-500 font-medium tabular-nums"></span>
+        <span
+          class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-green-50 text-success border border-green-100 ml-2">
+          <span class="w-1.5 h-1.5 bg-success rounded-full mr-1.5 animate-pulse"></span>
+          LIVE
+        </span>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <!-- Search -->
+        <div class="relative group">
+          <input type="text" placeholder="Search bookings, meals..."
+            class="w-72 pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all placeholder:text-slate-400">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5 group-focus-within:text-primary transition-colors"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <!-- Notifications -->
+        <button class="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-white"></span>
+        </button>
+
+        <!-- Profile -->
+        <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
+          <div class="text-right hidden md:block">
+            <p class="text-sm font-semibold text-slate-900 leading-tight">Alex Morgan</p>
+            <p class="text-[11px] text-slate-500">Warden</p>
+          </div>
+          <img src="https://ui-avatars.com/api/?name=Alex+Morgan&background=1e3a8a&color=fff&size=64" alt="Profile"
+            class="w-9 h-9 rounded-full border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all">
+        </div>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CONTENT -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-8">
+
+      <!-- KPI CARDS ROW -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-8">
+
+        <!-- Total Bookings -->
+        <div class="kpi-card animate-in delay-1 bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+              <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <span
+              class="inline-flex items-center text-[11px] font-bold text-success bg-green-50 px-1.5 py-0.5 rounded-md border border-green-100">
+              <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+              12%
+            </span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-900 tracking-tight">1,248</p>
+          <p class="text-xs text-slate-500 font-medium mt-0.5">Total Bookings Today</p>
+        </div>
+
+        <!-- Meals Served -->
+        <div class="kpi-card animate-in delay-2 bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <span
+              class="inline-flex items-center text-[11px] font-bold text-success bg-green-50 px-1.5 py-0.5 rounded-md border border-green-100">
+              <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+              8%
+            </span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-900 tracking-tight">986</p>
+          <p class="text-xs text-slate-500 font-medium mt-0.5">Meals Served</p>
+        </div>
+
+        <!-- Pending Collections -->
+        <div class="kpi-card animate-in delay-3 bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+              <svg class="w-5 h-5 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span
+              class="inline-flex items-center text-[11px] font-bold text-success bg-green-50 px-1.5 py-0.5 rounded-md border border-green-100">
+              <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                  d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+              5%
+            </span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-900 tracking-tight">42</p>
+          <p class="text-xs text-slate-500 font-medium mt-0.5">Pending Collections</p>
+        </div>
+
+        <!-- Active Students -->
+        <div class="kpi-card animate-in delay-4 bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+              <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <span
+              class="inline-flex items-center text-[11px] font-bold text-success bg-green-50 px-1.5 py-0.5 rounded-md border border-green-100">
+              <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+              2%
+            </span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-900 tracking-tight">3,420</p>
+          <p class="text-xs text-slate-500 font-medium mt-0.5">Active Students</p>
+        </div>
+
+        <!-- Average Rating -->
+        <div class="kpi-card animate-in delay-5 bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center">
+              <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              </svg>
+            </div>
+            <span
+              class="inline-flex items-center text-[11px] font-bold text-success bg-green-50 px-1.5 py-0.5 rounded-md border border-green-100">
+              <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+              3%
+            </span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-900 tracking-tight">4.6</p>
+          <p class="text-xs text-slate-500 font-medium mt-0.5">Average Rating</p>
+        </div>
+
+        <!-- Food Wastage -->
+        <div class="kpi-card animate-in delay-6 bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+              <svg class="w-5 h-5 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <span
+              class="inline-flex items-center text-[11px] font-bold text-success bg-green-50 px-1.5 py-0.5 rounded-md border border-green-100">
+              <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                  d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+              1.5%
+            </span>
+          </div>
+          <p class="text-2xl font-extrabold text-slate-900 tracking-tight">4.2%</p>
+          <p class="text-xs text-slate-500 font-medium mt-0.5">Food Wastage</p>
+        </div>
+      </div>
+
+      <!-- MIDDLE ROW: Meal Status + Live Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+
+        <!-- Meal Status Column -->
+        <div class="lg:col-span-4 space-y-4">
+          <div class="flex items-center justify-between mb-1">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Meal Status Overview</h3>
+            <button class="text-xs font-semibold text-primary hover:text-blue-700 transition-colors">View All</button>
+          </div>
+
+          <!-- Breakfast -->
+          <div class="meal-card bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center">
+                  <svg class="w-[18px] h-[18px] text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-bold text-slate-900 text-sm">Breakfast</p>
+                  <p class="text-[11px] text-slate-400 font-medium">7:00 — 9:00 AM</p>
+                </div>
+              </div>
+              <span
+                class="px-2 py-1 rounded-md bg-green-50 text-success text-[11px] font-bold border border-green-100">Closed</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-3">
+              <div class="text-center p-2 rounded-lg bg-slate-50">
+                <p class="text-base font-bold text-slate-800">420</p>
+                <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mt-0.5">Booked</p>
+              </div>
+              <div class="text-center p-2 rounded-lg bg-green-50/50">
+                <p class="text-base font-bold text-success">380</p>
+                <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mt-0.5">Served</p>
+              </div>
+              <div class="text-center p-2 rounded-lg bg-amber-50/50">
+                <p class="text-base font-bold text-warning">40</p>
+                <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mt-0.5">Pending</p>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="text-slate-500 font-medium">Completion</span>
+                <span class="font-bold text-slate-700">90%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-amber-500 h-1.5 rounded-full transition-all duration-1000" style="width: 90%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lunch -->
+          <div class="meal-card bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center">
+                  <svg class="w-[18px] h-[18px] text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-bold text-slate-900 text-sm">Lunch</p>
+                  <p class="text-[11px] text-slate-400 font-medium">12:00 — 2:00 PM</p>
+                </div>
+              </div>
+              <span
+                class="px-2 py-1 rounded-md bg-green-50 text-success text-[11px] font-bold border border-green-100 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 bg-success rounded-full animate-pulse"></span>
+                Active
+              </span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-3">
+              <div class="text-center p-2 rounded-lg bg-slate-50">
+                <p class="text-base font-bold text-slate-800">580</p>
+                <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mt-0.5">Booked</p>
+              </div>
+              <div class="text-center p-2 rounded-lg bg-green-50/50">
+                <p class="text-base font-bold text-success">420</p>
+                <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mt-0.5">Served</p>
+              </div>
+              <div class="text-center p-2 rounded-lg bg-amber-50/50">
+                <p class="text-base font-bold text-warning">160</p>
+                <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mt-0.5">Pending</p>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="text-slate-500 font-medium">Completion</span>
+                <span class="font-bold text-slate-700">72%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-orange-500 h-1.5 rounded-full transition-all duration-1000" style="width: 72%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dinner -->
+          <div class="meal-card bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center">
+                  <svg class="w-[18px] h-[18px] text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-bold text-slate-900 text-sm">Dinner</p>
+                  <p class="text-[11px] text-slate-400 font-medium">7:00 — 9:00 PM</p>
+                </div>
+              </div>
+              <span
+                class="px-2 py-1 rounded-md bg-slate-50 text-slate-500 text-[11px] font-bold border border-slate-100">Upcoming</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-3">
+              <div class="text-center p-2 rounded-lg bg-slate-50">
+                <p class="text-base font-bold text-slate-800">248</p>
+                <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mt-0.5">Booked</p>
+              </div>
+              <div class="text-center p-2 rounded-lg bg-green-50/50">
+                <p class="text-base font-bold text-success">186</p>
+                <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mt-0.5">Served</p>
+              </div>
+              <div class="text-center p-2 rounded-lg bg-amber-50/50">
+                <p class="text-base font-bold text-warning">62</p>
+                <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mt-0.5">Pending</p>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="text-slate-500 font-medium">Completion</span>
+                <span class="font-bold text-slate-700">75%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-indigo-500 h-1.5 rounded-full transition-all duration-1000" style="width: 75%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Booking Trend Chart -->
+        <div class="lg:col-span-8 panel bg-white rounded-xl p-6 border border-slate-100 shadow-sm flex flex-col">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Live Booking Trend</h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">Real-time volume across meal windows</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="flex items-center text-[11px] text-slate-500 font-medium">
+                <span class="w-2.5 h-2.5 bg-primary rounded-full mr-2"></span>
+                Today
+              </span>
+              <span class="flex items-center text-[11px] text-slate-500 font-medium">
+                <span class="w-2.5 h-2.5 bg-slate-300 rounded-full mr-2"></span>
+                Yesterday
+              </span>
+            </div>
+          </div>
+          <div class="flex-1 relative min-h-[300px]">
+            <canvas id="bookingChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM ROW: QR | Feedback | Activity | System Health -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+        <!-- QR Scan Status -->
+        <div class="panel bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">QR Scan Status</h3>
+            <button class="text-slate-400 hover:text-primary transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+              </svg>
+            </button>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between group cursor-default">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg class="w-[18px] h-[18px] text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-800">Successful</p>
+                  <p class="text-[11px] text-slate-400">Valid token scans</p>
+                </div>
+              </div>
+              <span class="text-lg font-bold text-slate-900 tabular-nums">856</span>
+            </div>
+
+            <div class="flex items-center justify-between group cursor-default">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg class="w-[18px] h-[18px] text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-800">Used Tokens</p>
+                  <p class="text-[11px] text-slate-400">Already redeemed</p>
+                </div>
+              </div>
+              <span class="text-lg font-bold text-slate-900 tabular-nums">42</span>
+            </div>
+
+            <div class="flex items-center justify-between group cursor-default">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg class="w-[18px] h-[18px] text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-800">Invalid</p>
+                  <p class="text-[11px] text-slate-400">Failed attempts</p>
+                </div>
+              </div>
+              <span class="text-lg font-bold text-slate-900 tabular-nums">18</span>
+            </div>
+
+            <div class="flex items-center justify-between group cursor-default">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg class="w-[18px] h-[18px] text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-800">Expired</p>
+                  <p class="text-[11px] text-slate-400">Time window elapsed</p>
+                </div>
+              </div>
+              <span class="text-lg font-bold text-slate-900 tabular-nums">6</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feedback Status -->
+        <div class="panel bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Feedback Status</h3>
+            <span
+              class="text-[11px] font-bold text-success bg-green-50 px-2 py-0.5 rounded-md border border-green-100">+5
+              today</span>
+          </div>
+
+          <div class="flex items-center justify-center mb-5">
+            <div class="relative w-28 h-28">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <path class="text-slate-100"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none"
+                  stroke="currentColor" stroke-width="3" />
+                <path class="text-accent" stroke-dasharray="86, 100"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none"
+                  stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-2xl font-extrabold text-slate-900">4.6</span>
+                <div class="flex items-center gap-0.5 mt-0.5">
+                  <svg class="w-3 h-3 text-accent" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <span class="text-[10px] text-slate-400 font-medium">/ 5.0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+              <span class="text-sm text-slate-500">Total Today</span>
+              <span class="text-sm font-bold text-slate-900 tabular-nums">128</span>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+              <span class="text-sm text-slate-500">Positive</span>
+              <span class="text-sm font-bold text-success tabular-nums">86%</span>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+              <span class="text-sm text-slate-500">Complaints</span>
+              <span class="text-sm font-bold text-error tabular-nums">12</span>
+            </div>
+            <div class="flex items-center justify-between py-2">
+              <span class="text-sm text-slate-500">Response Rate</span>
+              <span class="text-sm font-bold text-primary tabular-nums">94%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="panel bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Recent Activity</h3>
+            <button class="text-[11px] font-semibold text-primary hover:text-blue-700 transition-colors">View
+              All</button>
+          </div>
+          <div class="space-y-0">
+            <div class="activity-row flex items-start py-3 border-b border-slate-50 cursor-default">
+              <div class="w-2 h-2 bg-primary rounded-full mt-2 mr-3 shrink-0 ring-4 ring-blue-50"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-800 leading-snug">Lunch menu updated</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">By Admin • 2 min ago</p>
+              </div>
+            </div>
+            <div class="activity-row flex items-start py-3 border-b border-slate-50 cursor-default">
+              <div class="w-2 h-2 bg-success rounded-full mt-2 mr-3 shrink-0 ring-4 ring-green-50"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-800 leading-snug">120 bookings confirmed</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Lunch session • 15 min ago</p>
+              </div>
+            </div>
+            <div class="activity-row flex items-start py-3 border-b border-slate-50 cursor-default">
+              <div class="w-2 h-2 bg-accent rounded-full mt-2 mr-3 shrink-0 ring-4 ring-orange-50"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-800 leading-snug">35 QR scans completed</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Gate A • 32 min ago</p>
+              </div>
+            </div>
+            <div class="activity-row flex items-start py-3 border-b border-slate-50 cursor-default">
+              <div class="w-2 h-2 bg-warning rounded-full mt-2 mr-3 shrink-0 ring-4 ring-amber-50"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-800 leading-snug">New feedback received</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">4.5★ rating • 45 min ago</p>
+              </div>
+            </div>
+            <div class="activity-row flex items-start py-3 border-b border-slate-50 cursor-default">
+              <div class="w-2 h-2 bg-indigo-500 rounded-full mt-2 mr-3 shrink-0 ring-4 ring-indigo-50"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-800 leading-snug">Dinner menu published</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Auto-scheduled • 1 hr ago</p>
+              </div>
+            </div>
+            <div class="activity-row flex items-start py-3 cursor-default">
+              <div class="w-2 h-2 bg-slate-400 rounded-full mt-2 mr-3 shrink-0 ring-4 ring-slate-100"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-800 leading-snug">System backup completed</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Automated • 2 hrs ago</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Health -->
+        <div class="panel bg-white rounded-xl p-6 border border-slate-100 shadow-sm">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">System Health</h3>
+            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-success">
+              <span class="w-1.5 h-1.5 bg-success rounded-full animate-pulse"></span>
+              Healthy
+            </span>
+          </div>
+
+          <div class="space-y-3 mb-6">
+            <div class="flex items-center p-3 bg-green-50/70 rounded-xl border border-green-100/80">
+              <div class="w-2.5 h-2.5 bg-success rounded-full pulse-dot mr-3"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-slate-900">Server Online</p>
+                <p class="text-[11px] text-slate-500">Uptime 99.98% • 14d 6h</p>
+              </div>
+              <svg class="w-5 h-5 text-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+
+            <div class="flex items-center p-3 bg-green-50/70 rounded-xl border border-green-100/80">
+              <div class="w-2.5 h-2.5 bg-success rounded-full pulse-dot mr-3"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-slate-900">Database</p>
+                <p class="text-[11px] text-slate-500">Connected • 12ms latency</p>
+              </div>
+              <svg class="w-5 h-5 text-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+
+            <div class="flex items-center p-3 bg-green-50/70 rounded-xl border border-green-100/80">
+              <div class="w-2.5 h-2.5 bg-success rounded-full pulse-dot mr-3"></div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-slate-900">Notifications</p>
+                <p class="text-[11px] text-slate-500">Active • 24 sent today</p>
+              </div>
+              <svg class="w-5 h-5 text-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="space-y-4 pt-4 border-t border-slate-100">
+            <div>
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <span class="text-slate-500 font-medium">CPU Usage</span>
+                <span class="font-bold text-slate-700 tabular-nums">34%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-primary h-1.5 rounded-full transition-all duration-700" style="width: 34%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <span class="text-slate-500 font-medium">Memory</span>
+                <span class="font-bold text-slate-700 tabular-nums">62%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-accent h-1.5 rounded-full transition-all duration-700" style="width: 62%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <span class="text-slate-500 font-medium">Storage</span>
+                <span class="font-bold text-slate-700 tabular-nums">48%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-secondary h-1.5 rounded-full transition-all duration-700" style="width: 48%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="mt-8 pt-6 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-400">
+        <p> CanteenOS Enterprise. All rights reserved.</p>
+        <div class="flex items-center gap-4">
+          <span class="hover:text-slate-600 cursor-pointer transition-colors">Documentation</span>
+          <span class="hover:text-slate-600 cursor-pointer transition-colors">Support</span>
+          <span class="hover:text-slate-600 cursor-pointer transition-colors">Privacy</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // Live Date
+    const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', dateOptions);
+
+    // Booking Trend Chart
+    const ctx = document.getElementById('bookingChart').getContext('2d');
+
+    // Gradient fill
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(30, 58, 138, 0.12)');
+    gradient.addColorStop(1, 'rgba(30, 58, 138, 0.01)');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['7AM', '8AM', '9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM', '7PM', '8PM', '9PM'],
+        datasets: [{
+          label: 'Today',
+          data: [45, 180, 120, 30, 85, 340, 280, 150, 40, 60, 90, 120, 220, 180, 90],
+          borderColor: '#1e3a8a',
+          backgroundColor: gradient,
+          borderWidth: 2.5,
+          tension: 0.4,
+          fill: true,
+          pointRadius: 4,
+          pointBackgroundColor: '#ffffff',
+          pointBorderColor: '#1e3a8a',
+          pointBorderWidth: 2,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: '#1e3a8a',
+          pointHoverBorderColor: '#ffffff',
+          pointHoverBorderWidth: 2
+        }, {
+          label: 'Yesterday',
+          data: [40, 160, 110, 25, 75, 310, 260, 140, 35, 55, 85, 110, 200, 170, 85],
+          borderColor: '#cbd5e1',
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          borderDash: [6, 4],
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          pointBackgroundColor: '#cbd5e1'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1e293b',
+            padding: 12,
+            cornerRadius: 8,
+            titleFont: { size: 12, family: 'Inter', weight: '600' },
+            bodyFont: { size: 12, family: 'Inter' },
+            displayColors: true,
+            boxPadding: 4,
+            usePointStyle: true,
+            callbacks: {
+              label: function (context) {
+                return context.dataset.label + ': ' + context.parsed.y + ' bookings';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false, drawBorder: false },
+            ticks: { font: { size: 11, family: 'Inter' }, color: '#94a3b8', padding: 8 }
+          },
+          y: {
+            border: { display: false, dash: [4, 4] },
+            grid: { color: '#f1f5f9', drawBorder: false },
+            ticks: { font: { size: 11, family: 'Inter' }, color: '#94a3b8', padding: 12, maxTicksLimit: 6 }
+          }
+        },
+        interaction: {
+          intersect: false,
+
+          mode: 'index'
+        },
+        animation: {
+          duration: 1200,
+          easing: 'easeOutQuart'
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

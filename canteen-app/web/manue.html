@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KMS - Menu Planner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .cell-selected {
+      box-shadow: inset 0 0 0 2px #3b82f6 !important;
+      background-color: #eff6ff !important;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-slate-800 font-sans min-h-screen flex">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-slate-900 text-white flex flex-col fixed inset-y-0 left-0">
+    <div class="p-6">
+      <h1 class="text-2xl font-bold text-orange-500">Hostel Admin</h1>
+    </div>
+    <nav class="flex-1 px-4 space-y-2 mt-4">
+      <a href="main.html" class="flex items-center px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
+        <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Dashboard
+      </a>
+      <a href="manue.html" class="flex items-center px-4 py-3 rounded-lg bg-orange-500/10 text-orange-500 font-semibold">
+        <i data-lucide="utensils" class="w-5 h-5 mr-3"></i> Menu Management
+      </a>
+      <a href="#" class="flex items-center px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
+        <i data-lucide="bell" class="w-5 h-5 mr-3"></i> Notices
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="ml-64 flex-1 flex flex-col p-8">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-800">Menu Planner</h2>
+        <p class="text-slate-500 text-sm mt-1">Manage weekly meal schedules and publish updates</p>
+      </div>
+      <div class="flex space-x-3">
+        <button onclick="openModal('add')" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium flex items-center transition-colors">
+          <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Add Meal
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="flex space-x-3 mb-6">
+      <button id="btn-edit" class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-md text-sm hover:bg-slate-50 disabled:opacity-50" disabled>Edit Selected</button>
+      <button id="btn-delete" class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-md text-sm hover:bg-slate-50 disabled:opacity-50" disabled>Delete</button>
+      <button id="btn-duplicate" class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-md text-sm hover:bg-slate-50 disabled:opacity-50" disabled>Duplicate Day</button>
+      <button id="btn-apply" class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-md text-sm hover:bg-slate-50 disabled:opacity-50" disabled>Apply to Week</button>
+      <button id="btn-reset" class="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-md text-sm hover:bg-slate-50 ml-auto">Reset Changes</button>
+    </div>
+
+    <!-- Grid -->
+    <div id="meal-grid" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="p-4 border-b border-slate-200 font-semibold text-slate-500 w-32">Day</th>
+            <th class="p-4 border-b border-slate-200 font-semibold text-slate-500">Breakfast</th>
+            <th class="p-4 border-b border-slate-200 font-semibold text-slate-500">Lunch</th>
+            <th class="p-4 border-b border-slate-200 font-semibold text-slate-500">Snacks</th>
+            <th class="p-4 border-b border-slate-200 font-semibold text-slate-500">Dinner</th>
+          </tr>
+        </thead>
+        <tbody id="grid-body">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Edit/Add Modal -->
+  <div id="modal-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl w-[420px] overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <h3 id="modal-title" class="font-bold text-lg text-slate-800">Edit Meal</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Day</label>
+          <select id="modal-day" class="w-full border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-orange-500">
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Slot</label>
+          <select id="modal-slot" class="w-full border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-orange-500">
+            <option value="Breakfast">Breakfast</option>
+            <option value="Lunch">Lunch</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Dinner">Dinner</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Menu Items (comma separated)</label>
+          <textarea id="modal-items" rows="3" class="w-full border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-orange-500" placeholder="E.g. Poha, Boiled Eggs"></textarea>
+        </div>
+      </div>
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end space-x-3">
+        <button onclick="closeModal()" class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 font-medium">Cancel</button>
+        <button onclick="saveModal()" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+    
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const slots = ['Breakfast', 'Lunch', 'Snacks', 'Dinner'];
+    let menuData = {};
+    let selectedCell = null; // {day, slot}
+
+    // Initialize mock data
+    days.forEach(day => {
+      menuData[day] = {};
+      slots.forEach(slot => {
+        menuData[day][slot] = "Standard " + slot;
+      });
+    });
+
+    function renderGrid() {
+      const tbody = document.getElementById('grid-body');
+      tbody.innerHTML = '';
+      
+      days.forEach(day => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-slate-100 hover:bg-slate-50/50 transition-colors';
+        
+        const tdDay = document.createElement('td');
+        tdDay.className = 'p-4 font-medium text-slate-700';
+        tdDay.innerText = day;
+        tr.appendChild(tdDay);
+        
+        slots.forEach(slot => {
+          const td = document.createElement('td');
+          td.className = 'p-4 border-l border-slate-100 cursor-pointer transition-all relative group';
+          td.innerHTML = `
+            <div class="flex justify-between items-start">
+              <span class="text-sm text-slate-600">${menuData[day][slot] || '—'}</span>
+              <button class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-500 transition-opacity" onclick="event.stopPropagation(); openModal('edit', '${day}', '${slot}')">
+                <i data-lucide="edit-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          `;
+          
+          if (selectedCell && selectedCell.day === day && selectedCell.slot === slot) {
+            td.classList.add('cell-selected');
+          }
+          
+          td.onclick = () => selectCell(day, slot);
+          tr.appendChild(td);
+        });
+        
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+      updateActionButtons();
+    }
+
+    function selectCell(day, slot) {
+      if (selectedCell && selectedCell.day === day && selectedCell.slot === slot) {
+        selectedCell = null;
+      } else {
+        selectedCell = {day, slot};
+      }
+      renderGrid();
+    }
+
+    function updateActionButtons() {
+      const hasSelection = !!selectedCell;
+      document.getElementById('btn-edit').disabled = !hasSelection;
+      document.getElementById('btn-delete').disabled = !hasSelection;
+      document.getElementById('btn-duplicate').disabled = !hasSelection;
+      document.getElementById('btn-apply').disabled = !hasSelection;
+    }
+
+    // Quick Actions
+    document.getElementById('btn-edit').onclick = () => {
+      if(selectedCell) openModal('edit', selectedCell.day, selectedCell.slot);
+    };
+    
+    document.getElementById('btn-delete').onclick = () => {
+      if(selectedCell && confirm('Delete this meal?')) {
+        menuData[selectedCell.day][selectedCell.slot] = '—';
+        renderGrid();
+      }
+    };
+    
+    document.getElementById('btn-duplicate').onclick = () => {
+      if(selectedCell) {
+        const nextDayIdx = (days.indexOf(selectedCell.day) + 1) % 7;
+        const nextDay = days[nextDayIdx];
+        menuData[nextDay][selectedCell.slot] = menuData[selectedCell.day][selectedCell.slot];
+        renderGrid();
+      }
+    };
+
+    document.getElementById('btn-apply').onclick = () => {
+      if(selectedCell) {
+        const val = menuData[selectedCell.day][selectedCell.slot];
+        days.forEach(d => { menuData[d][selectedCell.slot] = val; });
+        renderGrid();
+      }
+    };
+
+    document.getElementById('btn-reset').onclick = () => {
+      if(confirm('Reset all changes?')) location.reload();
+    };
+
+    // Modal Logic
+    const overlay = document.getElementById('modal-overlay');
+    function openModal(mode, day, slot) {
+      overlay.classList.remove('hidden');
+      overlay.style.display = 'flex';
+      
+      if (mode === 'edit') {
+        document.getElementById('modal-title').innerText = 'Edit Meal';
+        document.getElementById('modal-day').value = day;
+        document.getElementById('modal-slot').value = slot;
+        document.getElementById('modal-items').value = menuData[day][slot] === '—' ? '' : menuData[day][slot];
+        document.getElementById('modal-day').disabled = true;
+        document.getElementById('modal-slot').disabled = true;
+      } else {
+        document.getElementById('modal-title').innerText = 'Add Meal';
+        document.getElementById('modal-items').value = '';
+        document.getElementById('modal-day').disabled = false;
+        document.getElementById('modal-slot').disabled = false;
+      }
+    }
+
+    function closeModal() {
+      overlay.classList.add('hidden');
+      overlay.style.display = 'none';
+    }
+
+    function saveModal() {
+      const day = document.getElementById('modal-day').value;
+      const slot = document.getElementById('modal-slot').value;
+      const items = document.getElementById('modal-items').value;
+      menuData[day][slot] = items || '—';
+      closeModal();
+      renderGrid();
+    }
+
+    // Initial render
+    renderGrid();
+  </script>
+</body>
+</html>

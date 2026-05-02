@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CanteenOS - Database Schema Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1e3a8a',
+            secondary: '#10b981',
+            bg: '#0f172a',
+            surface: '#1e293b',
+            accent: '#38bdf8'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Animation Classes */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Table Card Hover Effects */
+    .table-card {
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .table-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .line-connection {
+      position: absolute;
+      width: 2px;
+      background: linear-gradient(to bottom, #38bdf8 0%, transparent 100%);
+      left: 24px;
+      top: 0;
+      bottom: -40px;
+      z-index: -1;
+      opacity: 0.3;
+    }
+
+    /* Column animations */
+    .col-item {
+      opacity: 0;
+      transform: translateX(-10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.active .col-item {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-accent selection:text-bg">
+
+  <!-- Header Section -->
+  <header class="relative pt-24 pb-32 overflow-hidden flex flex-col items-center justify-center text-center px-6">
+    <!-- Background glow -->
+    <div class="absolute top-[-20%] left-[50%] translate-x-[-50%] w-[800px] h-[400px] bg-primary/30 rounded-full blur-[100px] pointer-events-none"></div>
+    
+    <div class="reveal active flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 mb-6 shadow-lg shadow-blue-500/30">
+      <i data-lucide="database" class="w-8 h-8 text-white"></i>
+    </div>
+    
+    <h1 class="reveal active text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 mb-6" style="transition-delay: 100ms;">
+      CanteenOS Architecture
+    </h1>
+    
+    <p class="reveal active max-w-2xl text-lg text-slate-400 leading-relaxed" style="transition-delay: 200ms;">
+      A comprehensive visual guide to the database schema powering the hostel management, meal planning, and student tracking ecosystem.
+    </p>
+
+    <!-- Scroll Indicator -->
+    <div class="reveal active absolute bottom-10 animate-bounce text-slate-500" style="transition-delay: 400ms;">
+      <i data-lucide="chevron-down" class="w-6 h-6"></i>
+    </div>
+  </header>
+
+  <!-- Main Content container -->
+  <main class="max-w-7xl mx-auto px-6 pb-32 relative">
+
+    <!-- Section 1: Master Tables -->
+    <section class="mb-24 relative pl-8 border-l border-slate-700/50">
+      <div class="absolute w-4 h-4 rounded-full bg-accent left-[-8.5px] top-1 shadow-[0_0_10px_rgba(56,189,248,0.8)]"></div>
+      
+      <div class="reveal mb-12">
+        <h2 class="text-3xl font-bold text-white mb-3 flex items-center">
+          <i data-lucide="layers" class="w-6 h-6 mr-3 text-accent"></i> Core Entities
+        </h2>
+        <p class="text-slate-400 max-w-3xl">The master tables form the foundation of CanteenOS. They store the primary entities: the physical hostels, the students living there, the staff managing them, and the types of meals served.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 reveal">
+        
+        <!-- Hostels -->
+        <div class="table-card bg-surface rounded-xl p-6 relative overflow-hidden group">
+          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <i data-lucide="building" class="w-24 h-24 text-accent"></i>
+          </div>
+          <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-4">
+            <h3 class="text-xl font-bold text-white flex items-center">
+              <span class="w-3 h-3 rounded-full bg-accent mr-3"></span> hostels
+            </h3>
+            <span class="text-xs font-mono bg-slate-800 text-slate-300 px-2 py-1 rounded">MASTER</span>
+          </div>
+          <p class="text-sm text-slate-400 mb-6">Physical dormitory buildings that group students and have localized settings.</p>
+          
+          <ul class="space-y-2 font-mono text-sm">
+            <li class="col-item flex justify-between" style="transition-delay: 50ms"><span class="text-accent">id</span> <span class="text-slate-500">uuid [PK]</span></li>
+            <li class="col-item flex justify-between" style="transition-delay: 100ms"><span class="text-white">name</span> <span class="text-slate-500">varchar(100)</span></li>
+            <li class="col-item flex justify-between" style="transition-delay: 150ms"><span class="text-white">location</span> <span class="text-slate-500">varchar(200)</span></li>
+            <li class="col-item flex justify-between" style="transition-delay: 200ms"><span class="text-white">total_students</span> <span class="text-slate-500">integer</span></li>
+          </ul>
+        </div>
+
+        <!-- Students -->
+        <div class="table-card bg-surface rounded-xl p-6 relative overflow-hidden group">
+          <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <i data-lucide="users" class="w-24 h-24 text-green-400"></i>
+          </div>
+          <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-4">
+            <h3 class="text-xl font-bold text-white flex items-center">
+              <span class="w-3 h-3 rounded-full bg-green-400 mr-3"></span> students
+            </h3>
+            <span class="text-xs font-mono bg-slate-800 text-slate-300 px-2 py-1 rounded">MASTER</span>
+          </div>
+          <p class="text-sm text-slate-400 mb-6">Users of the app who book and consume meals. Linked securely via Firebase Auth UID.</p>
+          
+          <ul class="space-y-2 font-mono text-sm">
+            <li class="col-item flex justify-between" style="transition-delay: 50ms"><span class="text-accent">id</span> <span class="text-slate-500">uuid [PK]</span></li>
+            <li class="col-item flex justify-between" style="transition-delay: 100ms"><span class="text-yellow-200">firebase_uid</span> <span class="text-slate-500">varchar(100) [U]</span></li>
+            <li class="col-item flex justify-between" style="transition-delay: 150ms"><span class="text-white">name, phone, email</span> <span class="text-slate-500">varchar</span></li>
+            <li class="col-item flex justify-between" style="transition-delay: 200ms"><span class="text-purple-400">hostel_id</span> <span class="text-slate-500">uuid [FK]</span></li>
+            <li class="col-item flex justify-between" style="transition-delay: 250ms"><span class="text-white">plan</span> <span class="text-slate-500">varchar(50)</span></li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Section 2: Transaction Tables -->
+    <section class="mb-24 relative pl-8 border-l border-slate-700/50">
+      <div class="absolute w-4 h-4 rounded-full bg-purple-500 left-[-8.5px] top-1 shadow-[0_0_10px_rgba(168,85,247,0.8)]"></div>
+      
+      <div class="reveal mb-12">
+        <h2 class="text-3xl font-bold text-white mb-3 flex items-center">
+          <i data-lucide="activity" class="w-6 h-6 mr-3 text-purple-500"></i> Transaction Records
+        </h2>
+        <p class="text-slate-400 max-w-3xl">Highly dynamic tables storing every state change. When a student interacts with the system—booking a meal, scanning a QR code, or leaving feedback—it creates a transaction.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Bookings -->
+        <div class="reveal table-card bg-surface rounded-xl p-6 md:col-span-2">
+          <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-4">
+            <h3 class="text-xl font-bold text-white flex items-center">
+              <i data-lucide="calendar-check" class="w-5 h-5 text-purple-400 mr-2"></i> bookings
+            </h3>
+            <span class="text-xs font-mono bg-purple-900/30 text-purple-300 px-2 py-1 rounded border border-purple-500/20">TRANSACTION</span>
+          </div>
+          <p class="text-sm text-slate-400 mb-6">The most critical table. Links a student to a meal type on a specific date, stores their selected items as JSON, and generates a unique QR token.</p>
+          
+          <div class="bg-slate-800/50 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+            <div class="flex justify-between mb-2"><span class="text-accent">id</span> <span class="text-slate-500">uuid [PK]</span></div>
+            <div class="flex justify-between mb-2"><span class="text-purple-400">student_id, hostel_id</span> <span class="text-slate-500">uuid [FK]</span></div>
+            <div class="flex justify-between mb-2"><span class="text-white">meal_type, booking_date</span> <span class="text-slate-500">varchar, date</span></div>
+            <div class="flex justify-between mb-2"><span class="text-green-300">items</span> <span class="text-slate-500">jsonb</span> <span class="text-xs text-slate-400 ml-4 hidden md:inline">→ e.g. ["Poha", "Tea"]</span></div>
+            <div class="flex justify-between mb-2"><span class="text-yellow-200">order_id</span> <span class="text-slate-500">varchar(20) [U]</span></div>
+            <div class="flex justify-between"><span class="text-pink-300">qr_token</span> <span class="text-slate-500">text</span></div>
+          </div>
+        </div>
+
+        <!-- Skips -->
+        <div class="reveal table-card bg-surface rounded-xl p-6" style="transition-delay: 100ms;">
+          <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-4">
+            <h3 class="text-xl font-bold text-white flex items-center">
+              <i data-lucide="x-circle" class="w-5 h-5 text-red-400 mr-2"></i> skips
+            </h3>
+          </div>
+          <p class="text-sm text-slate-400 mb-6">Records when a student opts out of a meal, helping the kitchen reduce food waste.</p>
+          <ul class="space-y-2 font-mono text-sm">
+            <li class="col-item flex justify-between"><span class="text-purple-400">student_id</span> <span class="text-slate-500">uuid</span></li>
+            <li class="col-item flex justify-between"><span class="text-white">skip_date</span> <span class="text-slate-500">date</span></li>
+            <li class="col-item flex justify-between"><span class="text-white">reason</span> <span class="text-slate-500">varchar</span></li>
+          </ul>
+        </div>
+
+        <!-- QR Scans -->
+        <div class="reveal table-card bg-surface rounded-xl p-6" style="transition-delay: 200ms;">
+          <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-4">
+            <h3 class="text-xl font-bold text-white flex items-center">
+              <i data-lucide="scan" class="w-5 h-5 text-green-400 mr-2"></i> qr_scans
+            </h3>
+          </div>
+          <p class="text-sm text-slate-400 mb-6">Logs exactly when and by whom a booking's QR code was validated at the counter.</p>
+          <ul class="space-y-2 font-mono text-sm">
+            <li class="col-item flex justify-between"><span class="text-purple-400">booking_id</span> <span class="text-slate-500">uuid</span></li>
+            <li class="col-item flex justify-between"><span class="text-purple-400">scanned_by</span> <span class="text-slate-500">uuid [staff]</span></li>
+            <li class="col-item flex justify-between"><span class="text-white">is_valid</span> <span class="text-slate-500">boolean</span></li>
+          </ul>
+        </div>
+
+        <!-- Payments -->
+        <div class="reveal table-card bg-surface rounded-xl p-6" style="transition-delay: 300ms;">
+          <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-4">
+            <h3 class="text-xl font-bold text-white flex items-center">
+              <i data-lucide="credit-card" class="w-5 h-5 text-emerald-400 mr-2"></i> payments
+            </h3>
+          </div>
+          <p class="text-sm text-slate-400 mb-6">Tracks financial transactions, such as subscription renewals or guest meal passes.</p>
+          <ul class="space-y-2 font-mono text-sm">
+            <li class="col-item flex justify-between"><span class="text-purple-400">student_id</span> <span class="text-slate-500">uuid</span></li>
+            <li class="col-item flex justify-between"><span class="text-green-300">amount</span> <span class="text-slate-500">decimal</span></li>
+            <li class="col-item flex justify-between"><span class="text-yellow-200">transaction_id</span> <span class="text-slate-500">varchar</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Configuration & System -->
+    <section class="mb-24 relative pl-8 border-l border-slate-700/50">
+      <div class="absolute w-4 h-4 rounded-full bg-yellow-500 left-[-8.5px] top-1 shadow-[0_0_10px_rgba(234,179,8,0.8)]"></div>
+      
+      <div class="reveal mb-12">
+        <h2 class="text-3xl font-bold text-white mb-3 flex items-center">
+          <i data-lucide="settings" class="w-6 h-6 mr-3 text-yellow-500"></i> Configuration & Logs
+        </h2>
+        <p class="text-slate-400 max-w-3xl">System administration tables defining operating hours, tracking auditing, capturing errors, and sending push notifications.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Settings -->
+        <div class="reveal table-card bg-surface rounded-xl p-6 group">
+          <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-4 relative z-10">
+            <h3 class="text-xl font-bold text-white flex items-center">
+              <i data-lucide="sliders" class="w-5 h-5 text-yellow-500 mr-2"></i> hostel_settings
+            </h3>
+            <span class="text-xs font-mono bg-yellow-900/30 text-yellow-300 px-2 py-1 rounded border border-yellow-500/20">CONFIG</span>
+          </div>
+          <p class="text-sm text-slate-400 mb-6 relative z-10">Stores operating hours for meals and logic constraints like "booking_close_before". Each hostel configures its own rules.</p>
+          
+          <div class="space-y-2 font-mono text-sm relative z-10">
+            <div class="flex justify-between"><span class="text-white">breakfast_start / end</span> <span class="text-slate-500">time</span></div>
+            <div class="flex justify-between"><span class="text-white">booking_close_before</span> <span class="text-slate-500">integer (mins)</span></div>
+            <div class="flex justify-between"><span class="text-white">max_students_per_slot</span> <span class="text-slate-500">integer</span></div>
+          </div>
+        </div>
+
+        <!-- Logs & Notifications Combined Visual -->
+        <div class="reveal grid grid-rows-2 gap-6 h-full">
+          <div class="table-card bg-surface rounded-xl p-6 flex items-center">
+            <div class="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mr-4 shrink-0">
+              <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-white">audit_logs & error_logs</h3>
+              <p class="text-xs text-slate-400 mt-1">Tracks every data mutation (old/new JSON values) and captures API/System crashes for debugging.</p>
+            </div>
+          </div>
+
+          <div class="table-card bg-surface rounded-xl p-6 flex items-center">
+            <div class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mr-4 shrink-0">
+              <i data-lucide="bell-ring" class="w-6 h-6 text-blue-400"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-white">notifications & queue</h3>
+              <p class="text-xs text-slate-400 mt-1">Generates and queues FCM push notifications (e.g. "Tomorrow's lunch closes in 2 hours!").</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Section 4: Analytics -->
+    <section class="relative pl-8 border-l border-transparent">
+      <div class="absolute w-4 h-4 rounded-full bg-emerald-400 left-[-8.5px] top-1 shadow-[0_0_10px_rgba(52,211,153,0.8)]"></div>
+      
+      <div class="reveal mb-12">
+        <h2 class="text-3xl font-bold text-white mb-3 flex items-center">
+          <i data-lucide="pie-chart" class="w-6 h-6 mr-3 text-emerald-400"></i> Data & Analytics
+        </h2>
+        <p class="text-slate-400 max-w-3xl">Aggregated statistical tables for fast dashboard rendering and historical archives to keep active tables light.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="reveal table-card bg-surface rounded-xl p-6 text-center border-t-4 border-t-emerald-500">
+          <i data-lucide="bar-chart-2" class="w-10 h-10 text-emerald-400 mx-auto mb-4"></i>
+          <h3 class="text-lg font-bold text-white mb-2">daily_stats / monthly_summary</h3>
+          <p class="text-sm text-slate-400">Stores pre-computed sums of bookings, skips, and feedback. Powers the Admin Dashboard's instant load times.</p>
+        </div>
+
+        <div class="reveal table-card bg-surface rounded-xl p-6 text-center border-t-4 border-t-slate-500" style="transition-delay: 150ms;">
+          <i data-lucide="archive" class="w-10 h-10 text-slate-400 mx-auto mb-4"></i>
+          <h3 class="text-lg font-bold text-white mb-2">bookings_archive / skips_archive</h3>
+          <p class="text-sm text-slate-400">Historical records moved out of the active transaction tables via automated Cron Jobs at the end of every semester.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-slate-800 bg-slate-900/50 py-10 text-center mt-20">
+    <div class="flex items-center justify-center space-x-2 text-slate-500">
+      <i data-lucide="code" class="w-5 h-5"></i>
+      <span>CanteenOS Database Diagram</span>
+    </div>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+
+    // Intersection Observer for scroll animations
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.15
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          // Don't unobserve to allow animations to re-trigger if desired, 
+          // but typically we unobserve for a one-time slide in:
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal').forEach((el) => {
+      observer.observe(el);
+    });
+
+    // Optional: Add random subtle hovering animations to icons
+    setInterval(() => {
+      const cards = document.querySelectorAll('.table-card');
+      const randomCard = cards[Math.floor(Math.random() * cards.length)];
+      randomCard.style.transform = 'translateY(-2px)';
+      setTimeout(() => {
+        randomCard.style.transform = '';
+      }, 300);
+    }, 2000);
+  </script>
+</body>
+</html>
