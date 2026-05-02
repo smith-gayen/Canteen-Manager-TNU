@@ -1,12 +1,10 @@
 # Hostel-Canteen-Manager-TNU
 
-<img width="1024" height="572" alt="image" src="https://github.com/user-attachments/assets/5d69fd1b-44fa-439d-98af-13dd9d7879aa" />
-
 A smart full-stack canteen management system designed specifically for college hostel environments, enabling students to order meals seamlessly while helping canteen staff manage operations efficiently.
 
 ✨ Built to eliminate long queues, reduce chaos during peak hours, and create a digitally optimized hostel food experience.
 
- # Key Features
+ Key Features
 🧑‍🎓 Student Login & Profile Management
 🛒 Pre-order Meals (Breakfast / Lunch / Dinner)
 ⏰ Time-slot Based Ordering System (avoids rush)
@@ -15,7 +13,7 @@ A smart full-stack canteen management system designed specifically for college h
 📱 Cross-platform Access (Web + Mobile App)
 🔔 Order Notifications & Updates
 
-# Tech Stack
+ Tech Stack
 🎨 Frontend
 ⚛️ React.js (Web Interface)
 📱 Flutter (Mobile Application)
@@ -26,14 +24,14 @@ A smart full-stack canteen management system designed specifically for college h
 🐘 PostgreSQL (Reliable & Scalable Database)
 🎯 🚀 Project Objective
 
-# To transform hostel canteen systems by:
+ To transform hostel canteen systems by:
 ⏳ Reducing long queues during meal times
 🍛 Allowing students to pre-book meals
 ⚙️ Automating food preparation workflow
 📊 Helping staff manage demand efficiently
 💡 Enhancing overall hostel life experience
 
- # Project Structure
+ Project Structure
 📦 Canteen-Manager-TNU
  ┣ 📂 canteen-app        → React Frontend
  ┣ 📂 canteen-backend    → Node.js + FastAPI Backend
@@ -41,7 +39,7 @@ A smart full-stack canteen management system designed specifically for college h
  ┣ 📄 Documentation
  ┗ 📄 Scripts
  
- # Future Enhancements
+ Future Enhancements
 💸 UPI / Online Payment Integration
 📅 Weekly Meal Subscription Plans
 📊 Demand Analytics for Food Planning
@@ -49,12 +47,12 @@ A smart full-stack canteen management system designed specifically for college h
 📍 Live Order Status Tracking
 💼 🎯 Real-World Impact
 
-# This system is ideal for:
+This system is ideal for:
 
 🏫 College Hostels
 🏢 Institutional Mess/Canteens
 🎓 University Campuses
 🤝 👨‍💻 Author
 
-# Smith Gayen
+ Smith Gayen
 🎓 BCA Student | Future AI Engineer
